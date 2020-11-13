@@ -1,3 +1,4 @@
+; -*- mode: restclient -*-
 
 :host=localhost:8000
 

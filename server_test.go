@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,11 +13,14 @@ func TestIndexPage(t *testing.T) {
 		response := httptest.NewRecorder()
 
 		IndexHandler(response, request)
-		got := response.Body.String()
+		rj := Response{}
+
+		json.Unmarshal(response.Body.Bytes(), &rj)
+
 		want := HuddleGreeting
 
-		if got != want {
-			t.Errorf("got `%q`, expected `%s`", got, want)
+		if rj.Message != want {
+			t.Errorf("got `%q`, expected `%s`", rj.Message, want)
 		}
 	})
 }
