@@ -1,0 +1,30 @@
+##Summary/Lead-in​: 
+Social network - you want to create a basic social network where a registered user can have a "wall"
+of comments/subcomments and reactions. Comments can be written by registered users, including the
+current user. Each comment can have subcomments. Each comment/subcomment can have reactions (like,
+dislike, +1, etc.)  A user needs to be authenticated with a jwt. You don't need to implement a
+system to assign jwts or perform any authentication (you can create a jwt manually and use it for
+this purpose), but expect that all the APIs need to verify the jwt. Without a valid jwt, the content
+should not be accesible.
+
+## Question:
+Write a service that will let a registered user create comments, subcomments, and reactions on any
+other user's "wall". Only users who have a valid jwt should be able to create/view content. A
+registered user should be able to delete their own comment/subcomment.  A registered user should be
+able to fetch comments/subcomments and reactions that were made on their "wall".
+
+1. disallow any request without a jwt, invalid jwt, or expired jwt.
+
+2. a registered user should be able to see all comments/subcomments and reactions made on their
+"wall". This should return the comment text, when it was created, who
+created it, and any reactions made on it.
+
+3. a registered user can create comments for anyone's wall (including their own).
+
+4. a registered user can create subcomment on any comment (including their own).
+
+5. a registered user can create reaction on any comment/subcomment.
+
+6. a registered user can delete their own comment/subcomment - this will also delete all reactions
+made on that comment.
+

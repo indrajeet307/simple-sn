@@ -1,0 +1,27 @@
+** RestAPIs
+*** TODO POST /signup
+*** TODO POST /signin
+*** TODO POST /signout
+*** TODO GET /comments
+*** TODO POST /comments
+*** TODO DELETE /comments
+*** TODO GET /reactions
+*** TODO POST /reactions
+*** TODO [#C] UPDATE /comments
+
+** TODO Database Schema
+*** Users
+    | ID | Username | Email | Password-hash |
+
+*** UserComments
+    | ByUser | ToUser | CommentID | ParentCommentId |
+
+*** Comments
+    | ID | Body | Reactions |
+
+*** CommentReactions
+    | CommentID | ReactionID |
+
+*** Reactions
+    | ID | ReactionID |
+    
