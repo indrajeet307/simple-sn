@@ -1,0 +1,5 @@
+
+:host=localhost:8000
+
+# index api
+GET http://:host/
