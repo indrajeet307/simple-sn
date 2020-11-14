@@ -23,8 +23,8 @@ func sendErrorResponse(w http.ResponseWriter, statusCode int, s string){
 	erj, _ := json.Marshal(er)
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(string(erj)))
 	w.WriteHeader(statusCode)
+	w.Write([]byte(string(erj)))
 }
 
 func sendJsonResponse(w http.ResponseWriter, v interface{}) {
@@ -34,8 +34,8 @@ func sendJsonResponse(w http.ResponseWriter, v interface{}) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(string(j)))
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(string(j)))
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
