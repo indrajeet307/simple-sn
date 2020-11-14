@@ -14,3 +14,16 @@ content-type: application/json
     "email" :"test@comp.com",
     "password":"asdf"
 }
+
+# Get comments on wall
+GET http://:host/wall/1
+content-type: application/json
+
+# Post comments on user 1's wall
+POST http://:host/wall/1
+content-type: application/json
+
+{
+	"from_user":2
+	"body":"Some intresting body"
+}

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"github.com/gorilla/mux"
 )
 func TestIndexPage(t *testing.T) {
 	t.Run("Test the index page", func(t *testing.T) {
@@ -27,6 +28,8 @@ func TestIndexPage(t *testing.T) {
 
 func TestUserOperations(t *testing.T) {
 	t.Run("Test the index page", func(t *testing.T) {
+		defer NewDB()
+
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
 		response := httptest.NewRecorder()
 
@@ -42,6 +45,8 @@ func TestUserOperations(t *testing.T) {
 		}
 	})
 	t.Run("Test new user add fails", func(t *testing.T) {
+		defer NewDB()
+
 		jsonString := `{"Name":"test name", "meail":"a@b.com", "password":"testpassword"}`
 		newUserBody, err := json.Marshal(jsonString)
 		if err!=nil{
@@ -57,6 +62,8 @@ func TestUserOperations(t *testing.T) {
 		}
 	})
 	t.Run("Test new user added", func(t *testing.T) {
+		defer NewDB()
+
 		newUser := NewUserRequest{
 			Name: "TestName",
 			Email: "emailaddress@ex.com",
@@ -84,6 +91,8 @@ func TestUserOperations(t *testing.T) {
 		}
 	})
 	t.Run("Test two users added", func(t *testing.T) {
+		defer NewDB()
+
 		newUser := []NewUserRequest{
 			{
 				Name: "user1",
@@ -105,7 +114,7 @@ func TestUserOperations(t *testing.T) {
 		if err != nil {
 			t.Errorf("Failed to add new user %s", err.Error())
 		}
-		checkResponse := func (response *httptest.ResponseRecorder, id int){
+		checkResponse := func (response *httptest.ResponseRecorder, id int64){
 			if response.Result().StatusCode != http.StatusOK {
 				t.Errorf("Error occured on server")
 			}
@@ -117,10 +126,12 @@ func TestUserOperations(t *testing.T) {
 				t.Errorf("got `%d`, expected `%d`", rj.ID, id)
 			}
 		}
-		checkResponse(response1, 1)
-		checkResponse(response2, 2)
+		checkResponse(response1, 0)
+		checkResponse(response2, 1)
 	})
 	t.Run("Test duplicate email id not allowed", func(t *testing.T) {
+		defer NewDB()
+
 		newUser := []NewUserRequest{
 			{
 				Name: "user1",
@@ -155,5 +166,127 @@ func addUser(user NewUserRequest) (response *httptest.ResponseRecorder, err erro
 	response = httptest.NewRecorder()
 
 	AddNewUser(response, request)
+	return response, nil
+}
+
+func TestWallOperations(t *testing.T) {
+	t.Run("Test can add to own wall", func(t *testing.T) {
+		defer NewDB()
+
+		newComment := NewCommentRequest{
+			ToUser:1,
+			FromUser:1,
+			Body:"Some intresting body",
+		}
+
+		response, err := addComment(newComment,"1")
+		if err != nil {
+			t.Fatalf("Unable to add comment")
+		}
+
+		rj := NewCommentResponse{}
+
+		json.Unmarshal(response.Body.Bytes(), &rj)
+
+		want := int64(0)
+
+		if rj.ID != want {
+			t.Errorf("got `%d`, expected `%d`", rj.ID, want)
+		}
+	})
+	t.Run("Test can add multiple comments to wall", func(t *testing.T) {
+		defer NewDB()
+
+		newComments := []NewCommentRequest{
+			{
+				FromUser:1,
+				Body:"Some intresting body",
+			},
+			{
+				FromUser:2,
+				Body:"Some intresting body 2",
+			},
+		}
+
+		response, err := addComment(newComments[0], "1")
+		if err != nil {
+			t.Fatalf("Unable to add comment")
+		}
+		rj := NewCommentResponse{}
+		json.Unmarshal(response.Body.Bytes(), &rj)
+		if rj.ID != 0 {
+			t.Errorf("got `%d`, expected `%d`", rj.ID, 0)
+		}
+
+		response, err = addComment(newComments[1], "1")
+		if err != nil {
+			t.Fatalf("Unable to add comment")
+		}
+		rj = NewCommentResponse{}
+		json.Unmarshal(response.Body.Bytes(), &rj)
+		if rj.ID != 1 {
+			t.Errorf("got `%d`, expected `%d`", rj.ID, 1)
+		}
+
+
+	})
+	t.Run("Test can fetch wall",  func(t *testing.T) {
+		defer NewDB()
+
+		newComments := []NewCommentRequest{
+			{
+				FromUser:1,
+				Body:"Some intresting body",
+			},
+			{
+				FromUser:2,
+				Body:"Some intresting body 2",
+			},
+			{
+				FromUser:2,
+				Body:"Some intresting body 3",
+			},
+		}
+
+		addComment(newComments[0], "1")
+		addComment(newComments[1], "1")
+		addComment(newComments[2], "2")
+
+		request, _ := http.NewRequest(http.MethodGet, "/wall/", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"userID": "1",
+		})
+		response := httptest.NewRecorder()
+
+		GetUserWall(response, request)
+
+		wcr := WallCommentsResponse{}
+		json.Unmarshal(response.Body.Bytes(), &wcr)
+
+		if len(wcr.Comments) != 2 {
+			t.Errorf("Failed To Fetch Wall Comments")
+		}
+
+
+		for _, comment := range wcr.Comments {
+			if comment.ToUser == 3 {
+				t.Errorf("Invalid Response, Should Fetch Entries From User 1 Only")
+			}
+		}
+
+	})
+}
+
+func addComment(comment NewCommentRequest, uid string) (response *httptest.ResponseRecorder, err error) {
+	requestBody, err := json.Marshal(comment)
+	if err != nil {
+		return nil, err
+	}
+	request, _ := http.NewRequest(http.MethodPost, "/wall", bytes.NewBuffer(requestBody))
+	request = mux.SetURLVars(request, map[string]string{
+		"userID": uid,
+	})
+	response = httptest.NewRecorder()
+	AddToWall(response, request)
 	return response, nil
 }

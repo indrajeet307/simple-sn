@@ -21,16 +21,38 @@ func (db *Database) AddUser(nu *NewUserRequest) (err error) {
 	db.users[nu.Email] = *nu
 	return nil
 }
+func (db *Database) AddComment(nc *NewCommentRequest) {
+	numComments := len(db.comments)
+	nc.ID = int64(numComments)
+	db.comments[nc.ID] = *nc
+}
+
+func (db *Database) GetWallComments(uid int64) (ncr WallCommentsResponse){
+	comments := []NewCommentRequest{}
+
+	for _, comment := range db.comments {
+		if comment.ToUser == uid {
+			comments = append(comments, comment)
+		}
+	}
+	ncr.Comments = comments
+	return
+}
 
 var db *Database = nil
 
 func GetDB () (*Database) {
 	if db == nil {
 		db = &Database{
-			map[string]NewUserRequest{},
+			users: map[string]NewUserRequest{},
 			comments: map[int64]NewCommentRequest{},
 		}
 	}
 	return db
 }
 
+
+func NewDB () (*Database) {
+	db = nil
+	return GetDB()
+}
