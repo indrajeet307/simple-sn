@@ -290,3 +290,53 @@ func addComment(comment NewCommentRequest, uid string) (response *httptest.Respo
 	AddToWall(response, request)
 	return response, nil
 }
+
+func addCommentReply(comment NewCommentRequest) (response *httptest.ResponseRecorder, err error) {
+	requestBody, err := json.Marshal(comment)
+	if err != nil {
+		return nil, err
+	}
+	request, _ := http.NewRequest(http.MethodPost, "/comments", bytes.NewBuffer(requestBody))
+	response = httptest.NewRecorder()
+	AddCommentReply(response, request)
+	return response, nil
+
+}
+
+func TestCommentOperation(t *testing.T){
+	t.Run("test can add comment", func(t *testing.T) {
+		defer NewDB()
+
+		newComment := NewCommentRequest{
+				FromUser:1,
+				Body:"Some intresting body",
+		}
+		response, err := addComment(newComment, "1")
+		if err != nil {
+			t.Errorf("Failed to add a new comment")
+		}
+
+		commentResponse := NewCommentResponse{}
+		json.Unmarshal(response.Body.Bytes(), &commentResponse)
+
+
+		commentReply := NewCommentRequest {
+			FromUser: 2,
+			ParentID: commentResponse.ID,
+			Body: "This is really a nice comment",
+		}
+
+		response, err = addCommentReply(commentReply)
+		if err != nil {
+			t.Errorf("Failed to add a new comment")
+		}
+
+		commentReplyResponse := NewCommentResponse{}
+		json.Unmarshal(response.Body.Bytes(), &commentReplyResponse)
+
+		if commentReplyResponse.ID != 1 {
+			t.Errorf("Unable to add commit reply to existing commit")
+		}
+
+	})
+}

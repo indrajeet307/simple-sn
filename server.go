@@ -65,6 +65,7 @@ type NewCommentRequest struct {
 	ToUser int64 `json:"to_user"`
 	FromUser int64 `json:"from_user"`
 	Body string `json:"body"`
+	ParentID int64 `json:"parent_id"`
 }
 
 type NewCommentResponse struct {
@@ -133,6 +134,18 @@ func GetUserWall(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, comments)
 }
 
+func AddCommentReply(w http.ResponseWriter, r *http.Request) {
+	newComment := NewCommentRequest{}
+	err := readRequest(r, &newComment)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Error reading request object %s", err.Error()))
+		return
+	}
+	db = GetDB()
+	db.AddComment(&newComment)
+	sendJsonResponse(w, NewCommentResponse{newComment.ID})
+}
+
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", IndexHandler)
@@ -143,9 +156,9 @@ func main() {
 	r.HandleFunc("/wall/{userID}", GetUserWall).Methods("GET")
 	r.HandleFunc("/wall/{userID}", AddToWall).Methods("POST")
 
+	r.HandleFunc("/comments", AddCommentReply).Methods("POST")
 	//r.HandleFunc("/comments/{commentID}", GetComment).Methods("GET")
-	//r.HandleFunc("/comments/{commentID}/{parentCommentID}", AddComment).Methods("POST")
-	//r.HandleFunc("/comments/{commentID}", DeleteComment).Methods("Delete")
+	//r.HandleFunc("/comments/{commentID}", DeleteComment).Methods("DELETE")
 
 	log.Print("Starting server on port 8000")
 	log.Fatal(http.ListenAndServe(":8000", r))
