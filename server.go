@@ -45,7 +45,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type NewUserRequest struct {
-	ID int `json:"id"`
+	ID int64 `json:"id"`
 	Name string `json:"name"`
 	Email string `json:"email"`
 	Password string `json:"password"`
@@ -53,7 +53,7 @@ type NewUserRequest struct {
 }
 
 type NewUserResponse struct {
-	ID int `json:"id"`
+	ID int64 `json:"id"`
 	Name string `json:"name"`
 	Email string `json:"email"`
 	Active bool `json:"active"`
