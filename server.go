@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"io/ioutil"
 
 	"github.com/gorilla/mux"
 )
@@ -42,9 +44,54 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, Response{HuddleGreeting})
 }
 
+type NewUserRequest struct {
+	ID int `json:"id"`
+	Name string `json:"name"`
+	Email string `json:"email"`
+	Password string `json:"password"`
+	Active string `json:"-"`
+}
+
+type NewUserResponse struct {
+	ID int `json:"id"`
+	Name string `json:"name"`
+	Email string `json:"email"`
+	Active bool `json:"active"`
+}
+
+func readRequest(r *http.Request, v interface{}) (err error) {
+	body := []byte{}
+	body, err = ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(body, v)
+	return err
+}
+
+func AddNewUser(w http.ResponseWriter, r *http.Request) {
+	newUser := NewUserRequest{}
+	err := readRequest(r, &newUser)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Error reading request object %s", err.Error()))
+		return
+	}
+	db = GetDB()
+	err = db.AddUser(&newUser)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	sendJsonResponse(w, NewUserResponse{newUser.ID, newUser.Name, newUser.Email, true})
+}
+
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", IndexHandler)
+
+	r.HandleFunc("/users", AddNewUser).Methods("POST")
+
 	log.Print("Starting server on port 8000")
 	log.Fatal(http.ListenAndServe(":8000", r))
 }

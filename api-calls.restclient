@@ -4,3 +4,13 @@
 
 # index api
 GET http://:host/
+
+# add a new user
+POST http://:host/users
+content-type: application/json
+
+{
+    "name" : "user2",
+    "email" :"test@comp.com",
+    "password":"asdf"
+}
