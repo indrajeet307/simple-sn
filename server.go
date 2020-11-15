@@ -123,9 +123,42 @@ func GetCommentReaction(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, listReactions)
 }
 
+func SignInUser(w http.ResponseWriter, r *http.Request) {
+	var signInRequest SignInRequest
+
+	err := readRequest(r, &signInRequest)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "Failed to read the sign in request")
+		return
+	}
+
+	db = GetDB()
+	err  = db.CheckPassword(&signInRequest)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "Invalid credentials")
+		return
+	}
+
+	auth = GetAuth()
+	stringToken, err := auth.GetToken(signInRequest.Email)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "Failed to sign token")
+		return
+	}
+
+	signInResponse := SignInResponse{
+		Email: signInRequest.Email,
+		Token: stringToken,
+	}
+
+	sendJsonResponse(w, signInResponse)
+}
+
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", IndexHandler)
+
+	r.HandleFunc("/signin", SignInUser).Methods("POST")
 
 	r.HandleFunc("/users", AddNewUser).Methods("POST")
 	//r.HandleFunc("/users/{userID}", AddNewUser).Methods("DELETE")

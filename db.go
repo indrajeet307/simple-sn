@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"errors"
 
 	"gorm.io/gorm"
 	gl "gorm.io/gorm/logger"
@@ -99,6 +100,19 @@ func (db *Database) GetCommentReactions(cid int64) (lr ListReactions) {
 	}
 	lr.Reactions = reactions
 	return
+}
+
+func (db *Database) CheckPassword(req *SignInRequest) (error) {
+	var user Users
+
+	results := db.engine.Where("email = ?", req.Email).First(&user)
+	if results.Error != nil {
+		return results.Error
+	}
+	if user.Password != req.Password {
+		return errors.New("Password dont match")
+	}
+	return nil
 }
 
 var db *Database = nil

@@ -53,3 +53,13 @@ type ReactionResponse struct {
 type ListReactions struct {
 	Reactions []ReactionResponse `json:"reactions"`
 }
+
+type SignInRequest struct {
+	Email string `json:"email"`
+	Password string `json:"password"`
+}
+
+type SignInResponse struct {
+	Email string `json:"email"`
+	Token string `json:"token"`
+}

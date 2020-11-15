@@ -27,3 +27,25 @@ content-type: application/json
 	"from_user":2
 	"body":"Some intresting body"
 }
+
+:gooduser=gooduser
+:goodemail=good@email.com
+:goodpass=goodpassword
+# Add a new user to system
+POST http://:host/users
+content-type: application/json
+
+{
+    "name":":gooduser",
+    "email":":goodemail",
+    "password":":goodpass"
+}
+
+# Post signin to the page
+POST http://:host/signin
+content-type: application/json
+
+{
+	"email": ":goodemail",
+	"password": ":goodpass"
+}
