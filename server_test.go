@@ -74,10 +74,11 @@ func TestUserOperations(t *testing.T) {
 		}
 		response, err := addUser(newUser)
 		if err != nil {
-			t.Errorf("Failed to add new user %s", err.Error())
+			t.Fatalf("Failed to add new user %s", err.Error())
 		}
 		if response.Result().StatusCode != http.StatusOK {
-			t.Errorf("Error occured on server")
+			t.Logf("%s", string(response.Body.Bytes()))
+			t.Fatalf("Api return code no ok")
 		}
 		rj := NewUserResponse{}
 
@@ -96,7 +97,7 @@ func TestUserOperations(t *testing.T) {
 	t.Run("Test two users added", func(t *testing.T) {
 		defer NewDB()
 
-		newUser := []NewUserRequest{
+		users := []NewUserRequest{
 			{
 				Name:     "user1",
 				Email:    "user1@ex.com",
@@ -109,17 +110,13 @@ func TestUserOperations(t *testing.T) {
 			},
 		}
 
-		response1, err := addUser(newUser[0])
-		if err != nil {
-			t.Errorf("Failed to add new user %s", err.Error())
-		}
-		response2, err := addUser(newUser[1])
-		if err != nil {
-			t.Errorf("Failed to add new user %s", err.Error())
-		}
-		checkResponse := func(response *httptest.ResponseRecorder, id int64) {
+		addUserAndCheckResponse := func(nu NewUserRequest, id int64) {
+			response, err := addUser(nu)
+			if err != nil {
+				t.Fatalf("Failed to add new user %s", err.Error())
+			}
 			if response.Result().StatusCode != http.StatusOK {
-				t.Errorf("Error occured on server")
+				t.Fatalf("Api return code no ok")
 			}
 			rj := NewUserResponse{}
 
@@ -129,8 +126,8 @@ func TestUserOperations(t *testing.T) {
 				t.Errorf("got `%d`, expected `%d`", rj.ID, id)
 			}
 		}
-		checkResponse(response1, 0)
-		checkResponse(response2, 1)
+		addUserAndCheckResponse(users[0], 1)
+		addUserAndCheckResponse(users[1], 2)
 	})
 	t.Run("Test duplicate email id not allowed", func(t *testing.T) {
 		defer NewDB()
