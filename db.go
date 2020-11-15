@@ -1,21 +1,20 @@
 package main
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 )
 
-
 type Database struct {
-	users map[string]NewUserRequest
-	comments map[int64]NewCommentRequest
+	users     map[string]NewUserRequest
+	comments  map[int64]NewCommentRequest
 	reactions map[int64]ReactionRequest
 }
 
 func (db *Database) AddUser(nu *NewUserRequest) (err error) {
 	numUsers := len(db.users)
 	nu.ID = int64(numUsers)
-	_, found := db.users[nu.Email];
+	_, found := db.users[nu.Email]
 	if found {
 		return errors.New(fmt.Sprintf("Email %s already registered", nu.Email))
 	}
@@ -28,7 +27,7 @@ func (db *Database) AddComment(nc *NewCommentRequest) {
 	db.comments[nc.ID] = *nc
 }
 
-func (db *Database) GetWallComments(uid int64) (ncr WallCommentsResponse){
+func (db *Database) GetWallComments(uid int64) (ncr WallCommentsResponse) {
 	comments := []NewCommentRequest{}
 
 	for _, comment := range db.comments {
@@ -45,7 +44,7 @@ func (db *Database) AddCommentReaction(rr *ReactionRequest) {
 	db.reactions[int64(numReactions)] = *rr
 }
 
-func (db *Database) GetCommentReactions(cid int64)(lr ListReactions) {
+func (db *Database) GetCommentReactions(cid int64) (lr ListReactions) {
 	reactions := []ReactionRequest{}
 
 	for _, reaction := range db.reactions {
@@ -59,19 +58,18 @@ func (db *Database) GetCommentReactions(cid int64)(lr ListReactions) {
 
 var db *Database = nil
 
-func GetDB () (*Database) {
+func GetDB() *Database {
 	if db == nil {
 		db = &Database{
-			users: map[string]NewUserRequest{},
-			comments: map[int64]NewCommentRequest{},
+			users:     map[string]NewUserRequest{},
+			comments:  map[int64]NewCommentRequest{},
 			reactions: map[int64]ReactionRequest{},
 		}
 	}
 	return db
 }
 
-
-func NewDB () (*Database) {
+func NewDB() *Database {
 	db = nil
 	return GetDB()
 }

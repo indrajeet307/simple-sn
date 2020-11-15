@@ -13,15 +13,7 @@ import (
 
 const HuddleGreeting = "Hello Huddle!!"
 
-type Response struct {
-    Message string `json:"message"`
-}
-
-type ErrorResponse struct {
-    Error string `json:"error"`
-}
-
-func sendErrorResponse(w http.ResponseWriter, statusCode int, s string){
+func sendErrorResponse(w http.ResponseWriter, statusCode int, s string) {
 	er := ErrorResponse{s}
 	erj, _ := json.Marshal(er)
 
@@ -29,7 +21,6 @@ func sendErrorResponse(w http.ResponseWriter, statusCode int, s string){
 	w.WriteHeader(statusCode)
 	w.Write([]byte(string(erj)))
 }
-
 func sendJsonResponse(w http.ResponseWriter, v interface{}) {
 	j, err := json.Marshal(v)
 	if err != nil {
@@ -40,38 +31,9 @@ func sendJsonResponse(w http.ResponseWriter, v interface{}) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(string(j)))
 }
-
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, Response{HuddleGreeting})
 }
-
-type NewUserRequest struct {
-	ID int64 `json:"id"`
-	Name string `json:"name"`
-	Email string `json:"email"`
-	Password string `json:"password"`
-	Active string `json:"-"`
-}
-
-type NewUserResponse struct {
-	ID int64 `json:"id"`
-	Name string `json:"name"`
-	Email string `json:"email"`
-	Active bool `json:"active"`
-}
-
-type NewCommentRequest struct {
-	ID int64 `json:"id"`
-	ToUser int64 `json:"to_user"`
-	FromUser int64 `json:"from_user"`
-	Body string `json:"body"`
-	ParentID int64 `json:"parent_id"`
-}
-
-type NewCommentResponse struct {
-	ID int64 `json:"id"`
-}
-
 func readRequest(r *http.Request, v interface{}) (err error) {
 	body := []byte{}
 	body, err = ioutil.ReadAll(r.Body)
@@ -82,7 +44,6 @@ func readRequest(r *http.Request, v interface{}) (err error) {
 	err = json.Unmarshal(body, v)
 	return err
 }
-
 func AddNewUser(w http.ResponseWriter, r *http.Request) {
 	newUser := NewUserRequest{}
 	err := readRequest(r, &newUser)
@@ -98,12 +59,11 @@ func AddNewUser(w http.ResponseWriter, r *http.Request) {
 	}
 	sendJsonResponse(w, NewUserResponse{newUser.ID, newUser.Name, newUser.Email, true})
 }
-
 func AddToWall(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID := vars["userID"]
 	uid, err := strconv.ParseInt(userID, 10, 64)
-		if err != nil {
+	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Invalid user ID"))
 	}
 	newComment := NewCommentRequest{}
@@ -117,23 +77,17 @@ func AddToWall(w http.ResponseWriter, r *http.Request) {
 	db.AddComment(&newComment)
 	sendJsonResponse(w, NewCommentResponse{newComment.ID})
 }
-
-type WallCommentsResponse struct {
-	Comments []NewCommentRequest
-}
-
 func GetUserWall(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID := vars["userID"]
 	uid, err := strconv.ParseInt(userID, 10, 64)
-		if err != nil {
+	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Invalid user ID"))
 	}
 	db = GetDB()
 	comments := db.GetWallComments(uid)
 	sendJsonResponse(w, comments)
 }
-
 func AddCommentReply(w http.ResponseWriter, r *http.Request) {
 	newComment := NewCommentRequest{}
 	err := readRequest(r, &newComment)
@@ -145,16 +99,6 @@ func AddCommentReply(w http.ResponseWriter, r *http.Request) {
 	db.AddComment(&newComment)
 	sendJsonResponse(w, NewCommentResponse{newComment.ID})
 }
-
-type ReactionRequest struct {
-	CommentID int64 `json:"comment_id"`
-	ReactionID int64 `json:"reaction_id"`
-}
-
-type ReactionResponse struct {
-	CommentID int64 `json:"comment_id"`
-}
-
 func AddCommentReaction(w http.ResponseWriter, r *http.Request) {
 	reaction := ReactionRequest{}
 	err := readRequest(r, &reaction)
@@ -166,11 +110,6 @@ func AddCommentReaction(w http.ResponseWriter, r *http.Request) {
 	db.AddCommentReaction(&reaction)
 	sendJsonResponse(w, ReactionResponse{reaction.CommentID})
 }
-
-type ListReactions struct {
-	Reactions []ReactionRequest `json:"reactions"`
-}
-
 func GetCommentReaction(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	commentID := vars["commentID"]

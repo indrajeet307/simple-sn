@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 )
+
 func TestIndexPage(t *testing.T) {
 	t.Run("Test the index page", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
@@ -51,7 +52,7 @@ func TestUserOperations(t *testing.T) {
 
 		jsonString := `{"Name":"test name", "meail":"a@b.com", "password":"testpassword"}`
 		newUserBody, err := json.Marshal(jsonString)
-		if err!=nil{
+		if err != nil {
 			t.Errorf("Failed to marshal %v", jsonString)
 		}
 		request, _ := http.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(newUserBody))
@@ -67,8 +68,8 @@ func TestUserOperations(t *testing.T) {
 		defer NewDB()
 
 		newUser := NewUserRequest{
-			Name: "TestName",
-			Email: "emailaddress@ex.com",
+			Name:     "TestName",
+			Email:    "emailaddress@ex.com",
 			Password: "testPassword",
 		}
 		response, err := addUser(newUser)
@@ -97,13 +98,13 @@ func TestUserOperations(t *testing.T) {
 
 		newUser := []NewUserRequest{
 			{
-				Name: "user1",
-				Email: "user1@ex.com",
+				Name:     "user1",
+				Email:    "user1@ex.com",
 				Password: "user1pass",
 			},
 			{
-				Name: "user2",
-				Email: "user2@ex.com",
+				Name:     "user2",
+				Email:    "user2@ex.com",
 				Password: "user1pass",
 			},
 		}
@@ -116,7 +117,7 @@ func TestUserOperations(t *testing.T) {
 		if err != nil {
 			t.Errorf("Failed to add new user %s", err.Error())
 		}
-		checkResponse := func (response *httptest.ResponseRecorder, id int64){
+		checkResponse := func(response *httptest.ResponseRecorder, id int64) {
 			if response.Result().StatusCode != http.StatusOK {
 				t.Errorf("Error occured on server")
 			}
@@ -136,13 +137,13 @@ func TestUserOperations(t *testing.T) {
 
 		newUser := []NewUserRequest{
 			{
-				Name: "user1",
-				Email: "user1@ex.com",
+				Name:     "user1",
+				Email:    "user1@ex.com",
 				Password: "user1pass",
 			},
 			{
-				Name: "user2",
-				Email: "user1@ex.com",
+				Name:     "user2",
+				Email:    "user1@ex.com",
 				Password: "user2pass",
 			},
 		}
@@ -158,9 +159,9 @@ func TestUserOperations(t *testing.T) {
 	})
 }
 
-func addUser(user NewUserRequest) (response *httptest.ResponseRecorder, err error){
+func addUser(user NewUserRequest) (response *httptest.ResponseRecorder, err error) {
 	newUserBody, err := json.Marshal(user)
-	if err!=nil{
+	if err != nil {
 		return nil, err
 	}
 	request, _ := http.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(newUserBody))
@@ -176,12 +177,12 @@ func TestWallOperations(t *testing.T) {
 		defer NewDB()
 
 		newComment := NewCommentRequest{
-			ToUser:1,
-			FromUser:1,
-			Body:"Some intresting body",
+			ToUser:   1,
+			FromUser: 1,
+			Body:     "Some intresting body",
 		}
 
-		response, err := addComment(newComment,"1")
+		response, err := addComment(newComment, "1")
 		if err != nil {
 			t.Fatalf("Unable to add comment")
 		}
@@ -201,12 +202,12 @@ func TestWallOperations(t *testing.T) {
 
 		newComments := []NewCommentRequest{
 			{
-				FromUser:1,
-				Body:"Some intresting body",
+				FromUser: 1,
+				Body:     "Some intresting body",
 			},
 			{
-				FromUser:2,
-				Body:"Some intresting body 2",
+				FromUser: 2,
+				Body:     "Some intresting body 2",
 			},
 		}
 
@@ -230,23 +231,22 @@ func TestWallOperations(t *testing.T) {
 			t.Errorf("got `%d`, expected `%d`", rj.ID, 1)
 		}
 
-
 	})
-	t.Run("Test can fetch wall",  func(t *testing.T) {
+	t.Run("Test can fetch wall", func(t *testing.T) {
 		defer NewDB()
 
 		newComments := []NewCommentRequest{
 			{
-				FromUser:1,
-				Body:"Some intresting body",
+				FromUser: 1,
+				Body:     "Some intresting body",
 			},
 			{
-				FromUser:2,
-				Body:"Some intresting body 2",
+				FromUser: 2,
+				Body:     "Some intresting body 2",
 			},
 			{
-				FromUser:2,
-				Body:"Some intresting body 3",
+				FromUser: 2,
+				Body:     "Some intresting body 3",
 			},
 		}
 
@@ -268,7 +268,6 @@ func TestWallOperations(t *testing.T) {
 		if len(wcr.Comments) != 2 {
 			t.Errorf("Failed To Fetch Wall Comments")
 		}
-
 
 		for _, comment := range wcr.Comments {
 			if comment.ToUser == 3 {
@@ -305,13 +304,13 @@ func addCommentReply(comment NewCommentRequest) (response *httptest.ResponseReco
 
 }
 
-func TestCommentOperation(t *testing.T){
+func TestCommentOperation(t *testing.T) {
 	t.Run("test can add comment", func(t *testing.T) {
 		defer NewDB()
 
 		newComment := NewCommentRequest{
-				FromUser:1,
-				Body:"Some intresting body",
+			FromUser: 1,
+			Body:     "Some intresting body",
 		}
 		response, err := addComment(newComment, "1")
 		if err != nil {
@@ -321,11 +320,10 @@ func TestCommentOperation(t *testing.T){
 		commentResponse := NewCommentResponse{}
 		json.Unmarshal(response.Body.Bytes(), &commentResponse)
 
-
-		commentReply := NewCommentRequest {
+		commentReply := NewCommentRequest{
 			FromUser: 2,
 			ParentID: commentResponse.ID,
-			Body: "This is really a nice comment",
+			Body:     "This is really a nice comment",
 		}
 
 		response, err = addCommentReply(commentReply)
@@ -364,14 +362,13 @@ func getCommentReactions(cid int) (response *httptest.ResponseRecorder, err erro
 	return response, nil
 }
 
-
-func TestReationOperation(t *testing.T){
+func TestReationOperation(t *testing.T) {
 	t.Run("test can add reation to comment", func(t *testing.T) {
 		defer NewDB()
 
 		newComment := NewCommentRequest{
-				FromUser:1,
-				Body:"Some intresting body",
+			FromUser: 1,
+			Body:     "Some intresting body",
 		}
 		response, err := addComment(newComment, "1")
 		if err != nil {
@@ -381,10 +378,9 @@ func TestReationOperation(t *testing.T){
 		commentResponse := NewCommentResponse{}
 		json.Unmarshal(response.Body.Bytes(), &commentResponse)
 
-
-		commentReaction := ReactionRequest {
+		commentReaction := ReactionRequest{
 			ReactionID: 1,
-			CommentID: commentResponse.ID,
+			CommentID:  commentResponse.ID,
 		}
 
 		response, err = addCommentReaction(commentReaction)
@@ -395,11 +391,11 @@ func TestReationOperation(t *testing.T){
 		reactionResponse := ReactionResponse{}
 		json.Unmarshal(response.Body.Bytes(), &reactionResponse)
 
-		if reactionResponse.CommentID != commentResponse.ID{
+		if reactionResponse.CommentID != commentResponse.ID {
 			t.Errorf("Unable to add commit reply to existing commit")
 		}
 
-		response, err  = getCommentReactions(int(commentResponse.ID))
+		response, err = getCommentReactions(int(commentResponse.ID))
 		if err != nil {
 			t.Errorf("Failed to fetch reactions for comment")
 		}
