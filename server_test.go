@@ -385,7 +385,7 @@ func TestReationOperation(t *testing.T) {
 
 		response, err = addCommentReaction(commentReaction)
 		if err != nil {
-			t.Errorf("Failed to add a new comment")
+			t.Fatalf("Failed to add a new comment")
 		}
 
 		reactionResponse := ReactionResponse{}
@@ -397,7 +397,8 @@ func TestReationOperation(t *testing.T) {
 
 		response, err = getCommentReactions(int(commentResponse.ID))
 		if err != nil {
-			t.Errorf("Failed to fetch reactions for comment")
+			t.Fatalf("Failed to fetch reactions for comment")
+			return
 		}
 
 		listReactions := ListReactions{}
