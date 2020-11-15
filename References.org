@@ -1,3 +1,5 @@
 - https://github.com/dgrijalva/jwt-go
 - https://github.com/d-tsuji/awesome-go-orms
 - https://gorm.io/docs/
+- https://github.com/dgrijalva/jwt-go/releases
+- https://www.sohamkamani.com/golang/2019-01-01-jwt-authentication/
