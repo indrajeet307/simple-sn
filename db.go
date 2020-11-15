@@ -17,7 +17,7 @@ type Database struct {
 }
 
 func (db *Database) AddUser(nu *NewUserRequest) (err error) {
-	user := User{
+	user := Users{
 	    Name: nu.Name,
 	    Email: nu.Email,
 	    Password: nu.Password,
@@ -31,20 +31,31 @@ func (db *Database) AddUser(nu *NewUserRequest) (err error) {
 }
 
 func (db *Database) AddComment(nc *NewCommentRequest) {
-	numComments := len(db.comments)
-	nc.ID = int64(numComments)
-	db.comments[nc.ID] = *nc
+	comment := Comments{
+		FromUserId: nc.FromUser,
+		ToUserId: nc.ToUser,
+		Body: nc.Body,
+	}
+	result := db.engine.Create(&comment)
+	if result.Error != nil {
+	}
+	nc.ID = comment.Id
 }
 
 func (db *Database) GetWallComments(uid int64) (ncr WallCommentsResponse) {
-	comments := []NewCommentRequest{}
-
-	for _, comment := range db.comments {
-		if comment.ToUser == uid {
-			comments = append(comments, comment)
-		}
+	var comments []Comments
+	db.engine.Where("ToUserId = ?", uid).Find(&comments)
+	resComments := []NewCommentRequest{}
+	for _, comment := range comments {
+		resComments = append(resComments,
+			NewCommentRequest{
+				ID: comment.Id,
+				ToUser: comment.ToUserId,
+				FromUser: comment.FromUserId,
+				Body: comment.Body,
+			})
 	}
-	ncr.Comments = comments
+	ncr.Comments = resComments
 	return
 }
 
@@ -67,13 +78,27 @@ func (db *Database) GetCommentReactions(cid int64) (lr ListReactions) {
 
 var db *Database = nil
 
-type User struct {
+type Users struct {
 	Id int64
 	Name string `gorm:"notnull"`
 	Email string `gorm:"unique; notnull"`
 	Password string `gorm:"notnull"`
 	Active bool `gorm:"notnull; default:false"`
 	Created int64 `gorm:"autoCreateTime"`
+}
+
+
+type Comments struct {
+	Id int64
+
+	FromUserId int64 `gorm:"notnull; column:FromUserId"`
+	FromUser Users `gorm:"foreginKey:FromUserId"`
+
+	ToUserId int64 `gorm:"notnull; column:ToUserId"`
+	ToUser Users `gorm:"foreginKey:ToUserId"`
+
+	Body string `gorm:"notnull"`
+	Deleted bool `gorm:"notnull; default:false"`
 }
 
 func GetDB() *Database {
@@ -84,7 +109,7 @@ func GetDB() *Database {
 		log.Fatalf("Could not open connection db exiting.")
 		return nil
 	}
-	err = engine.AutoMigrate(&User{})
+	err = engine.AutoMigrate(&Users{},&Comments{})
 
 	if err != nil {
 		log.Fatalf("Could not create table %s", err.Error())

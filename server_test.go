@@ -176,7 +176,7 @@ func TestWallOperations(t *testing.T) {
 		newComment := NewCommentRequest{
 			ToUser:   1,
 			FromUser: 1,
-			Body:     "Some intresting body",
+			Body:     "Some mildly intresting body",
 		}
 
 		response, err := addComment(newComment, "1")
@@ -188,7 +188,7 @@ func TestWallOperations(t *testing.T) {
 
 		json.Unmarshal(response.Body.Bytes(), &rj)
 
-		want := int64(0)
+		want := int64(1)
 
 		if rj.ID != want {
 			t.Errorf("got `%d`, expected `%d`", rj.ID, want)
@@ -211,21 +211,23 @@ func TestWallOperations(t *testing.T) {
 		response, err := addComment(newComments[0], "1")
 		if err != nil {
 			t.Fatalf("Unable to add comment")
+			return
 		}
 		rj := NewCommentResponse{}
 		json.Unmarshal(response.Body.Bytes(), &rj)
-		if rj.ID != 0 {
-			t.Errorf("got `%d`, expected `%d`", rj.ID, 0)
+		if rj.ID != 1 {
+			t.Errorf("got `%d`, expected `%d`", rj.ID, 1)
 		}
 
 		response, err = addComment(newComments[1], "1")
 		if err != nil {
 			t.Fatalf("Unable to add comment")
+			return
 		}
 		rj = NewCommentResponse{}
 		json.Unmarshal(response.Body.Bytes(), &rj)
-		if rj.ID != 1 {
-			t.Errorf("got `%d`, expected `%d`", rj.ID, 1)
+		if rj.ID != 2 {
+			t.Errorf("got `%d`, expected `%d`", rj.ID, 2)
 		}
 
 	})
@@ -331,8 +333,9 @@ func TestCommentOperation(t *testing.T) {
 		commentReplyResponse := NewCommentResponse{}
 		json.Unmarshal(response.Body.Bytes(), &commentReplyResponse)
 
-		if commentReplyResponse.ID != 1 {
-			t.Errorf("Unable to add commit reply to existing commit")
+		if commentReplyResponse.ID != 2 {
+			t.Log(commentReplyResponse.ID)
+			t.Errorf("Unable to add comment reply to existing comment")
 		}
 
 	})
