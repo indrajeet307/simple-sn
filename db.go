@@ -58,19 +58,29 @@ func (db *Database) GetWallComments(uid int64) (ncr WallCommentsResponse) {
 
 func (db *Database) AddCommentReaction(rr *ReactionRequest) (res *ReactionResponse) {
 
-	cr := CommentReactions{
-		CommentId: rr.CommentID,
-		ReactionId: rr.ReactionID,
-		Count: 1,
-	}
-	db.engine.Create(&cr)
+	res = &ReactionResponse{}
 
-	res = &ReactionResponse{
-		CommentID: rr.CommentID,
-		ReactionID: rr.ReactionID,
-		Count: 1,
-	}
-	return
+	db.engine.Transaction( func(tx *gorm.DB) error {
+		cr := CommentReactions{}
+		result := tx.Where("cid = ? AND rid = ?", rr.CommentID, rr.ReactionID).First(&cr)
+		if result.RowsAffected == 0{
+
+			cr.CommentId= rr.CommentID
+			cr.ReactionId= rr.ReactionID
+			cr.Count= 1
+
+			tx.Create(&cr)
+		} else {
+			cr.Count += 1
+			tx.Model(&CommentReactions{}).Where("cid = ? AND rid = ?", rr.CommentID, rr.ReactionID).Update("count", cr.Count)
+		}
+
+		res.CommentID= cr.CommentId
+		res.ReactionID= cr.ReactionId
+		res.Count= cr.Count
+		return nil
+	})
+	return res
 }
 
 func (db *Database) GetCommentReactions(cid int64) (lr ListReactions) {

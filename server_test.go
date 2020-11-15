@@ -341,15 +341,18 @@ func TestCommentOperation(t *testing.T) {
 	})
 }
 
-func addCommentReaction(rr ReactionRequest) (response *httptest.ResponseRecorder, err error) {
+func addCommentReaction(rr ReactionRequest) (response *ReactionResponse, err error) {
 	requestBody, err := json.Marshal(rr)
 	if err != nil {
 		return nil, err
 	}
 	request, _ := http.NewRequest(http.MethodPost, "/reactions", bytes.NewBuffer(requestBody))
-	response = httptest.NewRecorder()
-	AddCommentReaction(response, request)
-	return response, nil
+	recorder := httptest.NewRecorder()
+	AddCommentReaction(recorder, request)
+
+	response = &ReactionResponse{}
+	json.Unmarshal(recorder.Body.Bytes(), response)
+	return
 }
 
 func getCommentReactions(cid int) (response *httptest.ResponseRecorder, err error) {
@@ -383,16 +386,14 @@ func TestReationOperation(t *testing.T) {
 			CommentID:  commentResponse.ID,
 		}
 
-		response, err = addCommentReaction(commentReaction)
+		resp, err := addCommentReaction(commentReaction)
 		if err != nil {
-			t.Fatalf("Failed to add a new comment")
+			t.Fatalf("Failed to add a new reaction")
 		}
 
-		reactionResponse := ReactionResponse{}
-		json.Unmarshal(response.Body.Bytes(), &reactionResponse)
-
-		if reactionResponse.CommentID != commentResponse.ID {
-			t.Errorf("Unable to add commit reply to existing commit")
+		if resp.CommentID != commentResponse.ID {
+			t.Logf("%d  %d", resp.CommentID, commentResponse.ID)
+			t.Fatal("Unable to add comment reply to existing comment")
 		}
 
 		response, err = getCommentReactions(int(commentResponse.ID))
@@ -406,6 +407,55 @@ func TestReationOperation(t *testing.T) {
 
 		if len(listReactions.Reactions) != 1 {
 			t.Errorf("Unable to read added reaction properly")
+		}
+		if listReactions.Reactions[0].Count != 1 {
+			t.Errorf("Reactions count not set properly")
+		}
+
+		resp, err  = addCommentReaction(commentReaction)
+		if err != nil {
+			t.Fatalf("Failed to add a new reaction")
+		}
+		resp, err  = addCommentReaction(commentReaction)
+		if err != nil {
+			t.Fatalf("Failed to add a new reaction")
+		}
+
+		response, err = getCommentReactions(int(commentResponse.ID))
+		if err != nil {
+			t.Fatalf("Failed to fetch reactions for comment")
+			return
+		}
+
+		listReactions  = ListReactions{}
+		json.Unmarshal(response.Body.Bytes(), &listReactions)
+
+		if len(listReactions.Reactions) != 1 {
+			t.Errorf("Unable to read added reaction properly")
+		}
+		if listReactions.Reactions[0].Count != 3 {
+			t.Errorf("Reactions count not set properly")
+		}
+
+		commentReaction.ReactionID = 2
+		resp, err  = addCommentReaction(commentReaction)
+		if err != nil {
+			t.Fatalf("Failed to add a new reaction")
+		}
+		response, err = getCommentReactions(int(commentResponse.ID))
+		if err != nil {
+			t.Fatalf("Failed to fetch reactions for comment")
+			return
+		}
+
+		listReactions  = ListReactions{}
+		json.Unmarshal(response.Body.Bytes(), &listReactions)
+
+		if len(listReactions.Reactions) != 2 {
+			t.Errorf("Unable to read added reaction properly")
+		}
+		if listReactions.Reactions[1].Count != 1 {
+			t.Errorf("Reactions count not set properly")
 		}
 
 	})
