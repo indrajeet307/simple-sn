@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
+
 	"github.com/gorilla/mux"
 )
 func TestIndexPage(t *testing.T) {
@@ -336,6 +338,77 @@ func TestCommentOperation(t *testing.T){
 
 		if commentReplyResponse.ID != 1 {
 			t.Errorf("Unable to add commit reply to existing commit")
+		}
+
+	})
+}
+
+func addCommentReaction(rr ReactionRequest) (response *httptest.ResponseRecorder, err error) {
+	requestBody, err := json.Marshal(rr)
+	if err != nil {
+		return nil, err
+	}
+	request, _ := http.NewRequest(http.MethodPost, "/reactions", bytes.NewBuffer(requestBody))
+	response = httptest.NewRecorder()
+	AddCommentReaction(response, request)
+	return response, nil
+}
+
+func getCommentReactions(cid int) (response *httptest.ResponseRecorder, err error) {
+	request, _ := http.NewRequest(http.MethodGet, "/reactions", nil)
+	request = mux.SetURLVars(request, map[string]string{
+		"commentID": strconv.Itoa(cid),
+	})
+	response = httptest.NewRecorder()
+	GetCommentReaction(response, request)
+	return response, nil
+}
+
+
+func TestReationOperation(t *testing.T){
+	t.Run("test can add reation to comment", func(t *testing.T) {
+		defer NewDB()
+
+		newComment := NewCommentRequest{
+				FromUser:1,
+				Body:"Some intresting body",
+		}
+		response, err := addComment(newComment, "1")
+		if err != nil {
+			t.Errorf("Failed to add a new comment")
+		}
+
+		commentResponse := NewCommentResponse{}
+		json.Unmarshal(response.Body.Bytes(), &commentResponse)
+
+
+		commentReaction := ReactionRequest {
+			ReactionID: 1,
+			CommentID: commentResponse.ID,
+		}
+
+		response, err = addCommentReaction(commentReaction)
+		if err != nil {
+			t.Errorf("Failed to add a new comment")
+		}
+
+		reactionResponse := ReactionResponse{}
+		json.Unmarshal(response.Body.Bytes(), &reactionResponse)
+
+		if reactionResponse.CommentID != commentResponse.ID{
+			t.Errorf("Unable to add commit reply to existing commit")
+		}
+
+		response, err  = getCommentReactions(int(commentResponse.ID))
+		if err != nil {
+			t.Errorf("Failed to fetch reactions for comment")
+		}
+
+		listReactions := ListReactions{}
+		json.Unmarshal(response.Body.Bytes(), &listReactions)
+
+		if len(listReactions.Reactions) != 1 {
+			t.Errorf("Unable to read added reaction properly")
 		}
 
 	})

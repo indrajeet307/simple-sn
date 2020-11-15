@@ -146,6 +146,44 @@ func AddCommentReply(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, NewCommentResponse{newComment.ID})
 }
 
+type ReactionRequest struct {
+	CommentID int64 `json:"comment_id"`
+	ReactionID int64 `json:"reaction_id"`
+}
+
+type ReactionResponse struct {
+	CommentID int64 `json:"comment_id"`
+}
+
+func AddCommentReaction(w http.ResponseWriter, r *http.Request) {
+	reaction := ReactionRequest{}
+	err := readRequest(r, &reaction)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Error reading request object %s", err.Error()))
+		return
+	}
+	db = GetDB()
+	db.AddCommentReaction(&reaction)
+	sendJsonResponse(w, ReactionResponse{reaction.CommentID})
+}
+
+type ListReactions struct {
+	Reactions []ReactionRequest `json:"reactions"`
+}
+
+func GetCommentReaction(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	commentID := vars["commentID"]
+	cid, err := strconv.ParseInt(commentID, 10, 64)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Invalid comment ID %s %s", commentID, err.Error()))
+		return
+	}
+	db = GetDB()
+	listReactions := db.GetCommentReactions(cid)
+	sendJsonResponse(w, listReactions)
+}
+
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", IndexHandler)
@@ -159,6 +197,9 @@ func main() {
 	r.HandleFunc("/comments", AddCommentReply).Methods("POST")
 	//r.HandleFunc("/comments/{commentID}", GetComment).Methods("GET")
 	//r.HandleFunc("/comments/{commentID}", DeleteComment).Methods("DELETE")
+
+	r.HandleFunc("/reactions", AddCommentReaction).Methods("POST")
+	r.HandleFunc("/reactions/{commentID}", GetCommentReaction).Methods("GET")
 
 	log.Print("Starting server on port 8000")
 	log.Fatal(http.ListenAndServe(":8000", r))

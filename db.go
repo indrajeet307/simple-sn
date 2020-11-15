@@ -9,6 +9,7 @@ import (
 type Database struct {
 	users map[string]NewUserRequest
 	comments map[int64]NewCommentRequest
+	reactions map[int64]ReactionRequest
 }
 
 func (db *Database) AddUser(nu *NewUserRequest) (err error) {
@@ -39,6 +40,23 @@ func (db *Database) GetWallComments(uid int64) (ncr WallCommentsResponse){
 	return
 }
 
+func (db *Database) AddCommentReaction(rr *ReactionRequest) {
+	numReactions := len(db.reactions)
+	db.reactions[int64(numReactions)] = *rr
+}
+
+func (db *Database) GetCommentReactions(cid int64)(lr ListReactions) {
+	reactions := []ReactionRequest{}
+
+	for _, reaction := range db.reactions {
+		if reaction.CommentID == cid {
+			reactions = append(reactions, reaction)
+		}
+	}
+	lr.Reactions = reactions
+	return
+}
+
 var db *Database = nil
 
 func GetDB () (*Database) {
@@ -46,6 +64,7 @@ func GetDB () (*Database) {
 		db = &Database{
 			users: map[string]NewUserRequest{},
 			comments: map[int64]NewCommentRequest{},
+			reactions: map[int64]ReactionRequest{},
 		}
 	}
 	return db
