@@ -10,9 +10,6 @@ import (
 )
 
 type Database struct {
-	users     map[string]NewUserRequest
-	comments  map[int64]NewCommentRequest
-	reactions map[int64]ReactionRequest
 	engine *gorm.DB
 }
 
@@ -142,9 +139,6 @@ func GetDB() *Database {
 	}
 	if db == nil {
 		db = &Database{
-			users:     map[string]NewUserRequest{},
-			comments:  map[int64]NewCommentRequest{},
-			reactions: map[int64]ReactionRequest{},
 			engine: engine,
 		}
 	}
