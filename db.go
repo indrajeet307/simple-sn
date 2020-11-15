@@ -56,7 +56,7 @@ func (db *Database) GetWallComments(uid int64) (ncr WallCommentsResponse) {
 	return
 }
 
-func (db *Database) AddCommentReaction(rr *ReactionRequest) {
+func (db *Database) AddCommentReaction(rr *ReactionRequest) (res *ReactionResponse) {
 
 	cr := CommentReactions{
 		CommentId: rr.CommentID,
@@ -64,19 +64,27 @@ func (db *Database) AddCommentReaction(rr *ReactionRequest) {
 		Count: 1,
 	}
 	db.engine.Create(&cr)
+
+	res = &ReactionResponse{
+		CommentID: rr.CommentID,
+		ReactionID: rr.ReactionID,
+		Count: 1,
+	}
+	return
 }
 
 func (db *Database) GetCommentReactions(cid int64) (lr ListReactions) {
-	reactions := []ReactionRequest{}
+	reactions := []ReactionResponse{}
 
 	var crs []CommentReactions
 
 	db.engine.Where("cid = ?", cid).Find(&crs)
 
 	for _, reaction := range crs {
-		reactions = append(reactions, ReactionRequest{
+		reactions = append(reactions, ReactionResponse{
 			CommentID: reaction.CommentId,
 			ReactionID: reaction.ReactionId,
+			Count: reaction.Count,
 		})
 	}
 	lr.Reactions = reactions
@@ -101,10 +109,10 @@ type Reactions struct {
 
 type CommentReactions struct {
 
-	CommentId int64`gorm:"notnull; column:cid"`
+	CommentId int64`gorm:"notnull; column:cid; index:react_index"`
 	Comment Comments `gorm:"notnull; foreginKey"`
 
-	ReactionId int64`gorm:"notnull; column:rid"`
+	ReactionId int64`gorm:"notnull; column:rid; index:react_index"`
 	Reaction Reactions `gorm:"notnull; foreginKey"`
 
 	Count int64 `gorm:"default:0"`
@@ -126,6 +134,7 @@ type Comments struct {
 func GetDB() *Database {
 	engine, err := gorm.Open(sqlite.Open(DBFILE), &gorm.Config{
 		Logger: gl.Default.LogMode(gl.Warn),
+		SkipDefaultTransaction: false,
 	})
 	if err != nil {
 		log.Fatalf("Could not open connection db exiting.")

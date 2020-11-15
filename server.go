@@ -107,8 +107,8 @@ func AddCommentReaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	db = GetDB()
-	db.AddCommentReaction(&reaction)
-	sendJsonResponse(w, ReactionResponse{reaction.CommentID})
+	reactionResponse := db.AddCommentReaction(&reaction)
+	sendJsonResponse(w, reactionResponse)
 }
 func GetCommentReaction(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

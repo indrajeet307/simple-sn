@@ -46,8 +46,10 @@ type ReactionRequest struct {
 
 type ReactionResponse struct {
 	CommentID int64 `json:"comment_id"`
+	ReactionID int64 `json:"reaction_id"`
+	Count int64 `json:"count"`
 }
 
 type ListReactions struct {
-	Reactions []ReactionRequest `json:"reactions"`
+	Reactions []ReactionResponse `json:"reactions"`
 }
