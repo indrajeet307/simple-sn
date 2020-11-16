@@ -28,7 +28,7 @@ func (db *Database) AddUser(nu *NewUserRequest) (err error) {
 	return nil
 }
 
-func (db *Database) AddComment(nc *NewCommentRequest) {
+func (db *Database) AddComment(nc *NewCommentRequest) (err error) {
 	comment := Comments{
 		FromUserId: nc.FromUser,
 		ToUserId: nc.ToUser,
@@ -36,8 +36,10 @@ func (db *Database) AddComment(nc *NewCommentRequest) {
 	}
 	result := db.engine.Create(&comment)
 	if result.Error != nil {
+		return result.Error
 	}
 	nc.ID = comment.Id
+	return
 }
 
 func (db *Database) GetWallComments(uid int64) (ncr WallCommentsResponse) {
@@ -57,23 +59,26 @@ func (db *Database) GetWallComments(uid int64) (ncr WallCommentsResponse) {
 	return
 }
 
-func (db *Database) AddCommentReaction(rr *ReactionRequest) (res *ReactionResponse) {
+func (db *Database) AddCommentReaction(cid int64, rr *CommentReactionRequest) (res *CommentReactionResponse, err error) {
 
-	res = &ReactionResponse{}
+	res = &CommentReactionResponse{}
 
-	db.engine.Transaction( func(tx *gorm.DB) error {
+	err = db.engine.Transaction( func(tx *gorm.DB) error {
 		cr := CommentReactions{}
-		result := tx.Where("cid = ? AND rid = ?", rr.CommentID, rr.ReactionID).First(&cr)
+		result := tx.Where("cid = ? AND rid = ?", cid, rr.ReactionID).First(&cr)
 		if result.RowsAffected == 0{
 
-			cr.CommentId= rr.CommentID
+			cr.CommentId= cid
 			cr.ReactionId= rr.ReactionID
 			cr.Count= 1
 
-			tx.Create(&cr)
+			result := tx.Create(&cr)
+			if result.Error != nil {
+				return result.Error
+			}
 		} else {
 			cr.Count += 1
-			tx.Model(&CommentReactions{}).Where("cid = ? AND rid = ?", rr.CommentID, rr.ReactionID).Update("count", cr.Count)
+			tx.Model(&CommentReactions{}).Where("cid = ? AND rid = ?", cid, rr.ReactionID).Update("count", cr.Count)
 		}
 
 		res.CommentID= cr.CommentId
@@ -81,18 +86,26 @@ func (db *Database) AddCommentReaction(rr *ReactionRequest) (res *ReactionRespon
 		res.Count= cr.Count
 		return nil
 	})
-	return res
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
-func (db *Database) GetCommentReactions(cid int64) (lr ListReactions) {
-	reactions := []ReactionResponse{}
+func (db *Database) GetCommentReactions(cid int64) (lr CommentListReactions, err error) {
+
+	reactions := []CommentReactionResponse{}
 
 	var crs []CommentReactions
 
-	db.engine.Where("cid = ?", cid).Find(&crs)
+	results := db.engine.Where("cid = ?", cid).Find(&crs)
+
+	if results.Error != nil {
+		return lr, results.Error
+	}
 
 	for _, reaction := range crs {
-		reactions = append(reactions, ReactionResponse{
+		reactions = append(reactions, CommentReactionResponse{
 			CommentID: reaction.CommentId,
 			ReactionID: reaction.ReactionId,
 			Count: reaction.Count,
@@ -113,6 +126,37 @@ func (db *Database) CheckPassword(req *SignInRequest) (error) {
 		return errors.New("Password dont match")
 	}
 	return nil
+}
+
+func (db *Database) AddReaction(req *ReactionRequest) (error) {
+	reaction := Reactions{
+	    Name: req.Name,
+	}
+	result := db.engine.Create(&reaction)
+	if result.Error != nil {
+		return result.Error
+	}
+	req.ID = reaction.Id
+	return nil
+}
+
+func (db *Database) ListReaction() (lr ReactionResponse, err error) {
+	lr = ReactionResponse{}
+	reactions := []Reactions{}
+	result := db.engine.Find(&reactions)
+	if result.Error != nil {
+		return lr, result.Error
+	}
+	respReactions := []ReactionRequest{}
+
+	for _, r := range reactions {
+		respReactions = append(respReactions, ReactionRequest{
+			ID: r.Id,
+			Name: r.Name,
+		})
+	}
+	lr.Reactions = respReactions
+	return 
 }
 
 var db *Database = nil

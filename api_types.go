@@ -39,19 +39,26 @@ type WallCommentsResponse struct {
 	Comments []NewCommentRequest
 }
 
-type ReactionRequest struct {
-	CommentID  int64 `json:"comment_id"`
+type CommentReactionRequest struct {
 	ReactionID int64 `json:"reaction_id"`
 }
 
-type ReactionResponse struct {
+type CommentReactionResponse struct {
 	CommentID int64 `json:"comment_id"`
 	ReactionID int64 `json:"reaction_id"`
 	Count int64 `json:"count"`
 }
 
-type ListReactions struct {
-	Reactions []ReactionResponse `json:"reactions"`
+type CommentListReactions struct {
+	Reactions []CommentReactionResponse `json:"reactions"`
+}
+
+type ReactionRequest struct {
+	ID int64 `json:"reaction_id"`
+	Name string `json:"name"`
+}
+type ReactionResponse struct {
+	Reactions []ReactionRequest `json:"reactions"`
 }
 
 type SignInRequest struct {

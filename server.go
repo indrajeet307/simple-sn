@@ -101,15 +101,25 @@ func AddCommentReply(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, NewCommentResponse{newComment.ID})
 }
 func AddCommentReaction(w http.ResponseWriter, r *http.Request) {
-	reaction := ReactionRequest{}
-	err := readRequest(r, &reaction)
+	reaction := CommentReactionRequest{}
+	vars := mux.Vars(r)
+	commentID := vars["commentID"]
+	cid, err := strconv.ParseInt(commentID, 10, 64)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Invalid commit ID"))
+	}
+	err = readRequest(r, &reaction)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Error reading request object %s", err.Error()))
 		return
 	}
 	db = GetDB()
-	reactionResponse := db.AddCommentReaction(&reaction)
-	sendJsonResponse(w, reactionResponse)
+	commentReactionResponse, err := db.AddCommentReaction(cid, &reaction)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "Failed to add reaction")
+		return
+	}
+	sendJsonResponse(w, commentReactionResponse)
 }
 func GetCommentReaction(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -120,7 +130,11 @@ func GetCommentReaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	db = GetDB()
-	listReactions := db.GetCommentReactions(cid)
+	listReactions, err := db.GetCommentReactions(cid)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Failed to retrive reactions %s", err.Error()))
+		return
+	}
 	sendJsonResponse(w, listReactions)
 }
 
@@ -167,6 +181,32 @@ func validateToken(f http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+func AddReaction(w http.ResponseWriter, r *http.Request) {
+	var reactionRequest ReactionRequest
+	err := readRequest(r, &reactionRequest)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "Failed to read the add reaction request")
+		return
+	}
+
+	db = GetDB()
+	err = db.AddReaction(&reactionRequest)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "Failed to add reaction")
+		return
+	}
+	sendJsonResponse(w, reactionRequest)
+}
+
+func ListReaction(w http.ResponseWriter, r *http.Request) {
+	db = GetDB()
+	lr, err := db.ListReaction()
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "Failed to list reactions")
+		return
+	}
+	sendJsonResponse(w, lr)
+}
 
 func main() {
 	r := mux.NewRouter()
@@ -175,19 +215,18 @@ func main() {
 	r.HandleFunc("/signin", SignInUser).Methods("POST")
 
 	r.HandleFunc("/users", AddNewUser).Methods("POST")
-	//r.HandleFunc("/users/{userID}", AddNewUser).Methods("DELETE")
 
 	r.HandleFunc("/wall/{userID}", validateToken(GetUserWall)).Methods("GET")
 	r.HandleFunc("/wall/{userID}", validateToken(AddToWall)).Methods("POST")
 
 	r.HandleFunc("/comments", validateToken(AddCommentReply)).Methods("POST")
-	//r.HandleFunc("/comments/{commentID}", GetComment).Methods("GET")
-	//r.HandleFunc("/comments/{commentID}", DeleteComment).Methods("DELETE")
 
+	r.HandleFunc("/reactions", validateToken(AddReaction)).Methods("POST")
+	r.HandleFunc("/reactions", validateToken(ListReaction)).Methods("GET")
+
+	r.HandleFunc("/reactions/{commentID}", validateToken(AddCommentReaction)).Methods("POST")
 	r.HandleFunc("/reactions/{commentID}", validateToken(GetCommentReaction)).Methods("GET")
-	r.HandleFunc("/reactions", validateToken(AddCommentReaction)).Methods("POST")
 
 	log.Print("Starting server on port 8000")
 	log.Fatal(http.ListenAndServe(":8000", r))
 }
-
