@@ -31,9 +31,6 @@ func sendJsonResponse(w http.ResponseWriter, v interface{}) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(string(j)))
 }
-func IndexHandler(w http.ResponseWriter, r *http.Request) {
-	sendJsonResponse(w, Response{HuddleGreeting})
-}
 func readRequest(r *http.Request, v interface{}) (err error) {
 	body := []byte{}
 	body, err = ioutil.ReadAll(r.Body)
@@ -43,6 +40,9 @@ func readRequest(r *http.Request, v interface{}) (err error) {
 	}
 	err = json.Unmarshal(body, v)
 	return err
+}
+func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	sendJsonResponse(w, Response{HuddleGreeting})
 }
 func AddNewUser(w http.ResponseWriter, r *http.Request) {
 	newUser := NewUserRequest{}
@@ -60,11 +60,19 @@ func AddNewUser(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, NewUserResponse{newUser.ID, newUser.Name, newUser.Email, true})
 }
 func AddToWall(w http.ResponseWriter, r *http.Request) {
+	auth = GetAuth()
+	err := auth.Verify(r)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "Authentication token is invalid")
+		return
+	}
+
 	vars := mux.Vars(r)
 	userID := vars["userID"]
 	uid, err := strconv.ParseInt(userID, 10, 64)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Invalid user ID"))
+		return
 	}
 	newComment := NewCommentRequest{}
 	err = readRequest(r, &newComment)
