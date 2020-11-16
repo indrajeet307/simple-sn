@@ -214,6 +214,7 @@ func GetDB() *Database {
 		log.Fatalf("Could not create table %s", err.Error())
 		return nil
 	}
+	engine.Exec("PRAGMA foreign_keys = ON")
 	if db == nil {
 		db = &Database{
 			engine: engine,
