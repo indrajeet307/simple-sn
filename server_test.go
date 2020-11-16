@@ -412,11 +412,11 @@ func TestReationOperation(t *testing.T) {
 			t.Errorf("Reactions count not set properly")
 		}
 
-		resp, err  = addCommentReaction(commentReaction)
+		resp, err = addCommentReaction(commentReaction)
 		if err != nil {
 			t.Fatalf("Failed to add a new reaction")
 		}
-		resp, err  = addCommentReaction(commentReaction)
+		resp, err = addCommentReaction(commentReaction)
 		if err != nil {
 			t.Fatalf("Failed to add a new reaction")
 		}
@@ -427,7 +427,7 @@ func TestReationOperation(t *testing.T) {
 			return
 		}
 
-		listReactions  = ListReactions{}
+		listReactions = ListReactions{}
 		json.Unmarshal(response.Body.Bytes(), &listReactions)
 
 		if len(listReactions.Reactions) != 1 {
@@ -438,7 +438,7 @@ func TestReationOperation(t *testing.T) {
 		}
 
 		commentReaction.ReactionID = 2
-		resp, err  = addCommentReaction(commentReaction)
+		resp, err = addCommentReaction(commentReaction)
 		if err != nil {
 			t.Fatalf("Failed to add a new reaction")
 		}
@@ -448,7 +448,7 @@ func TestReationOperation(t *testing.T) {
 			return
 		}
 
-		listReactions  = ListReactions{}
+		listReactions = ListReactions{}
 		json.Unmarshal(response.Body.Bytes(), &listReactions)
 
 		if len(listReactions.Reactions) != 2 {

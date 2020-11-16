@@ -152,7 +152,7 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db = GetDB()
-	err  = db.CheckPassword(&signInRequest)
+	err = db.CheckPassword(&signInRequest)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "Invalid credentials")
 		return

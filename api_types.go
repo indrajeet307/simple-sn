@@ -44,9 +44,9 @@ type CommentReactionRequest struct {
 }
 
 type CommentReactionResponse struct {
-	CommentID int64 `json:"comment_id"`
+	CommentID  int64 `json:"comment_id"`
 	ReactionID int64 `json:"reaction_id"`
-	Count int64 `json:"count"`
+	Count      int64 `json:"count"`
 }
 
 type CommentListReactions struct {
@@ -54,7 +54,7 @@ type CommentListReactions struct {
 }
 
 type ReactionRequest struct {
-	ID int64 `json:"reaction_id"`
+	ID   int64  `json:"reaction_id"`
 	Name string `json:"name"`
 }
 type ReactionResponse struct {
@@ -62,7 +62,7 @@ type ReactionResponse struct {
 }
 
 type SignInRequest struct {
-	Email string `json:"email"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 

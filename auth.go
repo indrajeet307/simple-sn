@@ -3,8 +3,8 @@ package main
 import (
 	"errors"
 	"net/http"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 )
@@ -18,17 +18,16 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-
 var auth *Auth
 
 func (a *Auth) GetToken(email string) (token string, err error) {
 	expireTime := time.Now().Add(30 * time.Minute)
-	claims := &Claims {
+	claims := &Claims{
 		Email: email,
-			StandardClaims: jwt.StandardClaims{
-				ExpiresAt: expireTime.Unix(),
-			},
-		}
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expireTime.Unix(),
+		},
+	}
 
 	claim := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
 	tokenString, err := claim.SignedString(a.jwtKey)
@@ -45,7 +44,7 @@ func (a *Auth) Verify(req *http.Request) (err error) {
 	}
 	token := strings.Split(bearToken, " ")[1]
 	claim := &Claims{}
-	tkn, err := jwt.ParseWithClaims(token, claim, func(token *jwt.Token) (interface{}, error){
+	tkn, err := jwt.ParseWithClaims(token, claim, func(token *jwt.Token) (interface{}, error) {
 		return a.jwtKey, nil
 	})
 	if err != nil {
@@ -55,7 +54,7 @@ func (a *Auth) Verify(req *http.Request) (err error) {
 		return errors.New("Failed to parse token")
 	}
 	if !tkn.Valid {
-		return errors.New("Token is not valid");
+		return errors.New("Token is not valid")
 	}
 	return nil
 }
