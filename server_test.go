@@ -172,7 +172,14 @@ func addUser(user NewUserRequest) (response *httptest.ResponseRecorder, err erro
 
 func TestWallOperations(t *testing.T) {
 	t.Run("Test can add to own wall", func(t *testing.T) {
+		db = GetDB()
 		defer NewDB()
+
+		db.AddUser( &NewUserRequest{
+			Name: "test",
+			Email: "e@b.com",
+			Password:"password",
+		})
 
 		newComment := NewCommentRequest{
 			ToUser:   1,
@@ -196,7 +203,19 @@ func TestWallOperations(t *testing.T) {
 		}
 	})
 	t.Run("Test can add multiple comments to wall", func(t *testing.T) {
+		db = GetDB()
 		defer NewDB()
+
+		db.AddUser( &NewUserRequest{
+			Name: "user1",
+			Email: "user1@b.com",
+			Password:"password",
+		})
+		db.AddUser( &NewUserRequest{
+			Name: "user2",
+			Email: "user2@b.com",
+			Password:"password",
+		})
 
 		newComments := []NewCommentRequest{
 			{
@@ -233,7 +252,19 @@ func TestWallOperations(t *testing.T) {
 
 	})
 	t.Run("Test can fetch wall", func(t *testing.T) {
+		db = GetDB()
 		defer NewDB()
+
+		db.AddUser( &NewUserRequest{
+			Name: "user1",
+			Email: "user1@b.com",
+			Password:"password",
+		})
+		db.AddUser( &NewUserRequest{
+			Name: "user2",
+			Email: "user2@b.com",
+			Password:"password",
+		})
 
 		newComments := []NewCommentRequest{
 			{
@@ -244,15 +275,10 @@ func TestWallOperations(t *testing.T) {
 				FromUser: 2,
 				Body:     "Some intresting body 2",
 			},
-			{
-				FromUser: 2,
-				Body:     "Some intresting body 3",
-			},
 		}
 
 		addComment(newComments[0], "1")
 		addComment(newComments[1], "1")
-		addComment(newComments[2], "2")
 
 		request, _ := http.NewRequest(http.MethodGet, "/wall/", nil)
 		request = mux.SetURLVars(request, map[string]string{
