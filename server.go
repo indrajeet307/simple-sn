@@ -75,7 +75,11 @@ func AddToWall(w http.ResponseWriter, r *http.Request) {
 	}
 	newComment.ToUser = uid
 	db = GetDB()
-	db.AddComment(&newComment)
+	err = db.AddComment(&newComment)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Failed to add entry %s", err.Error()))
+		return
+	}
 	sendJsonResponse(w, NewCommentResponse{newComment.ID})
 }
 func GetUserWall(w http.ResponseWriter, r *http.Request) {
