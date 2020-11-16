@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"testing"
+	"fmt"
 
 	"github.com/gorilla/mux"
 )
@@ -341,16 +342,16 @@ func TestCommentOperation(t *testing.T) {
 	})
 }
 
-func addCommentReaction(rr ReactionRequest) (response *ReactionResponse, err error) {
+func addCommentReaction(cid int64, rr CommentReactionRequest) (response *CommentReactionResponse, err error) {
 	requestBody, err := json.Marshal(rr)
 	if err != nil {
 		return nil, err
 	}
-	request, _ := http.NewRequest(http.MethodPost, "/reactions", bytes.NewBuffer(requestBody))
+	request, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/reactions/%d", cid) , bytes.NewBuffer(requestBody))
 	recorder := httptest.NewRecorder()
 	AddCommentReaction(recorder, request)
 
-	response = &ReactionResponse{}
+	response = &CommentReactionResponse{}
 	json.Unmarshal(recorder.Body.Bytes(), response)
 	return
 }
@@ -381,12 +382,11 @@ func TestReationOperation(t *testing.T) {
 		commentResponse := NewCommentResponse{}
 		json.Unmarshal(response.Body.Bytes(), &commentResponse)
 
-		commentReaction := ReactionRequest{
+		commentReaction := CommentReactionRequest{
 			ReactionID: 1,
-			CommentID:  commentResponse.ID,
 		}
 
-		resp, err := addCommentReaction(commentReaction)
+		resp, err := addCommentReaction(commentResponse.ID, commentReaction)
 		if err != nil {
 			t.Fatalf("Failed to add a new reaction")
 		}
@@ -402,7 +402,7 @@ func TestReationOperation(t *testing.T) {
 			return
 		}
 
-		listReactions := ListReactions{}
+		listReactions := CommentListReactions{}
 		json.Unmarshal(response.Body.Bytes(), &listReactions)
 
 		if len(listReactions.Reactions) != 1 {
@@ -412,11 +412,11 @@ func TestReationOperation(t *testing.T) {
 			t.Errorf("Reactions count not set properly")
 		}
 
-		resp, err = addCommentReaction(commentReaction)
+		resp, err = addCommentReaction(commentResponse.ID, commentReaction)
 		if err != nil {
 			t.Fatalf("Failed to add a new reaction")
 		}
-		resp, err = addCommentReaction(commentReaction)
+		resp, err = addCommentReaction(commentResponse.ID, commentReaction)
 		if err != nil {
 			t.Fatalf("Failed to add a new reaction")
 		}
@@ -427,7 +427,7 @@ func TestReationOperation(t *testing.T) {
 			return
 		}
 
-		listReactions = ListReactions{}
+		listReactions = CommentListReactions{}
 		json.Unmarshal(response.Body.Bytes(), &listReactions)
 
 		if len(listReactions.Reactions) != 1 {
@@ -438,7 +438,7 @@ func TestReationOperation(t *testing.T) {
 		}
 
 		commentReaction.ReactionID = 2
-		resp, err = addCommentReaction(commentReaction)
+		resp, err = addCommentReaction(commentResponse.ID, commentReaction)
 		if err != nil {
 			t.Fatalf("Failed to add a new reaction")
 		}
@@ -448,7 +448,7 @@ func TestReationOperation(t *testing.T) {
 			return
 		}
 
-		listReactions = ListReactions{}
+		listReactions = CommentListReactions{}
 		json.Unmarshal(response.Body.Bytes(), &listReactions)
 
 		if len(listReactions.Reactions) != 2 {
