@@ -60,13 +60,6 @@ func AddNewUser(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, NewUserResponse{newUser.ID, newUser.Name, newUser.Email, true})
 }
 func AddToWall(w http.ResponseWriter, r *http.Request) {
-	auth = GetAuth()
-	err := auth.Verify(r)
-	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "Authentication token is invalid")
-		return
-	}
-
 	vars := mux.Vars(r)
 	userID := vars["userID"]
 	uid, err := strconv.ParseInt(userID, 10, 64)
@@ -162,6 +155,19 @@ func SignInUser(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, signInResponse)
 }
 
+func validateToken(f http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := auth.Verify(r)
+		if err != nil {
+			sendErrorResponse(w, http.StatusInternalServerError, "Authentication token is invalid")
+			return
+		}
+		log.Printf("Token all OK")
+		f(w, r)
+	}
+}
+
+
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", IndexHandler)
@@ -171,16 +177,17 @@ func main() {
 	r.HandleFunc("/users", AddNewUser).Methods("POST")
 	//r.HandleFunc("/users/{userID}", AddNewUser).Methods("DELETE")
 
-	r.HandleFunc("/wall/{userID}", GetUserWall).Methods("GET")
-	r.HandleFunc("/wall/{userID}", AddToWall).Methods("POST")
+	r.HandleFunc("/wall/{userID}", validateToken(GetUserWall)).Methods("GET")
+	r.HandleFunc("/wall/{userID}", validateToken(AddToWall)).Methods("POST")
 
-	r.HandleFunc("/comments", AddCommentReply).Methods("POST")
+	r.HandleFunc("/comments", validateToken(AddCommentReply)).Methods("POST")
 	//r.HandleFunc("/comments/{commentID}", GetComment).Methods("GET")
 	//r.HandleFunc("/comments/{commentID}", DeleteComment).Methods("DELETE")
 
-	r.HandleFunc("/reactions", AddCommentReaction).Methods("POST")
-	r.HandleFunc("/reactions/{commentID}", GetCommentReaction).Methods("GET")
+	r.HandleFunc("/reactions/{commentID}", validateToken(GetCommentReaction)).Methods("GET")
+	r.HandleFunc("/reactions", validateToken(AddCommentReaction)).Methods("POST")
 
 	log.Print("Starting server on port 8000")
 	log.Fatal(http.ListenAndServe(":8000", r))
 }
+
