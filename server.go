@@ -75,7 +75,7 @@ func AddToWall(w http.ResponseWriter, r *http.Request) {
 	}
 	newComment.ToUser = uid
 	db = GetDB()
-	err = db.AddComment(&newComment)
+	err = db.AddWallComment(&newComment)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Failed to add entry %s", err.Error()))
 		return
@@ -101,7 +101,7 @@ func AddCommentReply(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	db = GetDB()
-	db.AddComment(&newComment)
+	db.AddWallComment(&newComment)
 	sendJsonResponse(w, NewCommentResponse{newComment.ID})
 }
 func AddCommentReaction(w http.ResponseWriter, r *http.Request) {

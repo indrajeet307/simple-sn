@@ -28,7 +28,7 @@ func (db *Database) AddUser(nu *NewUserRequest) (err error) {
 	return nil
 }
 
-func (db *Database) AddComment(nc *NewCommentRequest) (err error) {
+func (db *Database) AddWallComment(nc *NewCommentRequest) (err error) {
 	comment := Comments{
 		FromUserId: nc.FromUser,
 		ToUserId:   nc.ToUser,
