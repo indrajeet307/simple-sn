@@ -318,12 +318,15 @@ func addComment(comment NewCommentRequest, uid string) (response *httptest.Respo
 	return response, nil
 }
 
-func addCommentReply(comment NewCommentRequest) (response *httptest.ResponseRecorder, err error) {
+func addCommentReply(comment CommentReplyRequest, cid int64) (response *httptest.ResponseRecorder, err error) {
 	requestBody, err := json.Marshal(comment)
 	if err != nil {
 		return nil, err
 	}
 	request, _ := http.NewRequest(http.MethodPost, "/comments", bytes.NewBuffer(requestBody))
+	request = mux.SetURLVars(request, map[string]string{
+		"commentID": strconv.FormatInt(cid, 10),
+	})
 	response = httptest.NewRecorder()
 	AddCommentReply(response, request)
 	return response, nil
@@ -332,7 +335,19 @@ func addCommentReply(comment NewCommentRequest) (response *httptest.ResponseReco
 
 func TestCommentOperation(t *testing.T) {
 	t.Run("test can add comment", func(t *testing.T) {
+		db = GetDB()
 		defer NewDB()
+
+		db.AddUser( &NewUserRequest{
+			Name: "user1",
+			Email: "user1@b.com",
+			Password:"password",
+		})
+		db.AddUser( &NewUserRequest{
+			Name: "user2",
+			Email: "user2@b.com",
+			Password:"password",
+		})
 
 		newComment := NewCommentRequest{
 			FromUser: 1,
@@ -346,15 +361,17 @@ func TestCommentOperation(t *testing.T) {
 		commentResponse := NewCommentResponse{}
 		json.Unmarshal(response.Body.Bytes(), &commentResponse)
 
-		commentReply := NewCommentRequest{
+		commentReply := CommentReplyRequest{
 			FromUser: 2,
-			ParentID: commentResponse.ID,
 			Body:     "This is really a nice comment",
 		}
 
-		response, err = addCommentReply(commentReply)
+		t.Log(commentResponse.ID)
+
+		response, err = addCommentReply(commentReply, commentResponse.ID)
 		if err != nil {
 			t.Errorf("Failed to add a new comment")
+			return
 		}
 
 		commentReplyResponse := NewCommentResponse{}

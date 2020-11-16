@@ -28,7 +28,12 @@ type NewCommentRequest struct {
 	ToUser   int64  `json:"to_user"`
 	FromUser int64  `json:"from_user"`
 	Body     string `json:"body"`
-	ParentID int64  `json:"parent_id"`
+}
+
+type CommentReplyRequest struct {
+	ID       int64  `json:"id"`
+	FromUser int64  `json:"from_user"`
+	Body     string `json:"body"`
 }
 
 type NewCommentResponse struct {

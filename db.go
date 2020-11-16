@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"fmt"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -39,6 +40,26 @@ func (db *Database) AddWallComment(nc *NewCommentRequest) (err error) {
 		return result.Error
 	}
 	nc.ID = comment.Id
+	return
+}
+
+func (db *Database) AddComment(commentID int64, cr *CommentReplyRequest) (err error) {
+	parentComment := Comments{}
+	result := db.engine.Where("id == ?", commentID).Find(&parentComment)
+	if result.Error != nil {
+		return result.Error
+	}
+	comment := Comments{
+		FromUserId: cr.FromUser,
+		ToUserId:   parentComment.ToUserId,
+		Body:       cr.Body,
+		Path: fmt.Sprintf("%s/%d", parentComment.Path, parentComment.Id),
+	}
+	result = db.engine.Create(&comment)
+	if result.Error != nil {
+		return result.Error
+	}
+	cr.ID = comment.Id
 	return
 }
 
@@ -196,6 +217,8 @@ type Comments struct {
 
 	Body    string `gorm:"notnull"`
 	Deleted bool   `gorm:"notnull; default:false"`
+
+	Path string `gorm:"notnul"; default:"/"`
 }
 
 func GetDB() *Database {

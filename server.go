@@ -94,15 +94,27 @@ func GetUserWall(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, comments)
 }
 func AddCommentReply(w http.ResponseWriter, r *http.Request) {
-	newComment := NewCommentRequest{}
-	err := readRequest(r, &newComment)
+	commentReply := CommentReplyRequest{}
+	vars := mux.Vars(r)
+	commentID := vars["commentID"]
+	cid, err := strconv.Atoi(commentID)
+	if err != nil {
+		log.Printf(err.Error())
+		sendErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Invalid commit ID"))
+		return
+	}
+	err = readRequest(r, &commentReply)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Error reading request object %s", err.Error()))
 		return
 	}
 	db = GetDB()
-	db.AddWallComment(&newComment)
-	sendJsonResponse(w, NewCommentResponse{newComment.ID})
+	err = db.AddComment(int64(cid), &commentReply)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Failed to add entry %s", err.Error()))
+		return
+	}
+	sendJsonResponse(w, NewCommentResponse{commentReply.ID})
 }
 func AddCommentReaction(w http.ResponseWriter, r *http.Request) {
 	reaction := CommentReactionRequest{}
@@ -223,7 +235,7 @@ func main() {
 	r.HandleFunc("/wall/{userID}", validateToken(GetUserWall)).Methods("GET")
 	r.HandleFunc("/wall/{userID}", validateToken(AddToWall)).Methods("POST")
 
-	r.HandleFunc("/comments", validateToken(AddCommentReply)).Methods("POST")
+	r.HandleFunc("/comments/{commentID}", validateToken(AddCommentReply)).Methods("POST")
 
 	r.HandleFunc("/reactions", validateToken(AddReaction)).Methods("POST")
 	r.HandleFunc("/reactions", validateToken(ListReaction)).Methods("GET")
