@@ -2,36 +2,15 @@
 
 :host=localhost:8000
 
-# index api
+# Index page api
+# To check server is up and working
 GET http://:host/
-
-# add a new user
-POST http://:host/users
-content-type: application/json
-
-{
-    "name" : "user2",
-    "email" :"test@comp.com",
-    "password":"asdf"
-}
-
-# Get comments on wall
-GET http://:host/wall/1
-content-type: application/json
-
-# Post comments on user 1's wall
-POST http://:host/wall/1
-content-type: application/json
-
-{
-	"from_user":2
-	"body":"Some intresting body"
-}
 
 :gooduser=gooduser
 :goodemail=good@email.com
 :goodpass=goodpassword
-# Add a new user to system
+# Add user api to system
+# This call will add a new user to the service
 POST http://:host/users
 content-type: application/json
 
@@ -41,7 +20,9 @@ content-type: application/json
     "password":":goodpass"
 }
 
-# Post signin to the page
+# Signin API so user can log in to the service
+# This api will return a jwt which should be used for any of the next calls
+# toke will be valid for 30 minutes
 POST http://:host/signin
 content-type: application/json
 
@@ -49,3 +30,51 @@ content-type: application/json
 	"email": ":goodemail",
 	"password": ":goodpass"
 }
+
+:token=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJFbWFpbCI6Imdvb2RAZW1haWwuY29tIiwiZXhwIjoxNjA1NjM1MTU1fQ.sgtRvNFf_3bF43K6jPIU7DBZ8-rTdipPiQfDKQuObIvSiSfAq-1RSom8PKEjT3NXlMHRluZK2za5Lkptmj9Eig
+# Get comments on wall of the user 
+GET http://:host/wall/1
+content-type: application/json
+Authorization: bearer :token
+
+# Put comment on wall of the user
+POST http://:host/wall/1
+content-type: application/json
+Authorization: bearer :token
+
+{
+	"from_user":1,
+	"body":"Some intresting body"
+}
+
+# Put a reaction into the system
+POST http://:host/reactions
+content-type: application/json
+Authorization: bearer :token
+
+{
+	"name": "Good"
+}
+
+# Get list of reactions in the system
+GET http://:host/reactions
+content-type: application/json
+Authorization: bearer :token
+
+{
+	"name": "Good"
+}
+
+# Add reaction to a comment
+POST http://:host/reactions/1
+content-type: application/json
+Authorization: bearer :token
+
+{
+	"reaction_id": 1
+}
+
+# Get reactions on a comment
+GET http://:host/reactions/1
+content-type: application/json
+Authorization: bearer :token
