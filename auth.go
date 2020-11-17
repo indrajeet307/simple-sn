@@ -11,6 +11,8 @@ import (
 
 type Auth struct {
 	jwtKey []byte
+	defaultExpiry time.Duration
+
 }
 
 type Claims struct {
@@ -21,7 +23,7 @@ type Claims struct {
 var auth *Auth
 
 func (a *Auth) GetToken(email string) (token string, err error) {
-	expireTime := time.Now().Add(30 * time.Minute)
+	expireTime := time.Now().Add(a.defaultExpiry)
 	claims := &Claims{
 		Email: email,
 		StandardClaims: jwt.StandardClaims{
@@ -62,6 +64,7 @@ func (a *Auth) Verify(req *http.Request) (err error) {
 func GetAuth() *Auth {
 	auth = &Auth{
 		jwtKey: []byte("some_random_key"),
+		defaultExpiry: 30 * time.Minute,
 	}
 	return auth
 }
