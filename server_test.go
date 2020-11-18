@@ -409,9 +409,19 @@ func getCommentReactions(cid int) (response *httptest.ResponseRecorder, err erro
 	return response, nil
 }
 
-func TestReationOperation(t *testing.T) {
-	t.Run("test can add reation to comment", func(t *testing.T) {
+func TestReactionOperation(t *testing.T) {
+	t.Run("test can add reaction to comment", func(t *testing.T) {
+		db = GetDB()
 		defer NewDB()
+
+		db.AddUser( &NewUserRequest{
+			Name: "test",
+			Email: "e@b.com",
+			Password:"password",
+		})
+		db.AddReaction( &ReactionRequest{
+			Name: "testreact",
+		})
 
 		newComment := NewCommentRequest{
 			FromUser: 1,
@@ -449,7 +459,7 @@ func TestReationOperation(t *testing.T) {
 		json.Unmarshal(response.Body.Bytes(), &listReactions)
 
 		if len(listReactions.Reactions) != 1 {
-			t.Errorf("Unable to read added reaction properly")
+			t.Fatalf("Unable to read added reaction properly")
 		}
 		if listReactions.Reactions[0].Count != 1 {
 			t.Errorf("Reactions count not set properly")
