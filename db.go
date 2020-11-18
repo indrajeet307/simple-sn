@@ -2,9 +2,9 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
-	"fmt"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -53,7 +53,7 @@ func (db *Database) AddComment(commentID int64, cr *CommentReplyRequest) (err er
 		FromUserId: cr.FromUser,
 		ToUserId:   parentComment.ToUserId,
 		Body:       cr.Body,
-		Path: fmt.Sprintf("%s/%d", parentComment.Path, parentComment.Id),
+		Path:       fmt.Sprintf("%s/%d", parentComment.Path, parentComment.Id),
 	}
 	result = db.engine.Create(&comment)
 	if result.Error != nil {

@@ -3,11 +3,11 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"testing"
-	"fmt"
 
 	"github.com/gorilla/mux"
 )
@@ -175,10 +175,10 @@ func TestWallOperations(t *testing.T) {
 		db = GetDB()
 		defer NewDB()
 
-		db.AddUser( &NewUserRequest{
-			Name: "test",
-			Email: "e@b.com",
-			Password:"password",
+		db.AddUser(&NewUserRequest{
+			Name:     "test",
+			Email:    "e@b.com",
+			Password: "password",
 		})
 
 		newComment := NewCommentRequest{
@@ -206,15 +206,15 @@ func TestWallOperations(t *testing.T) {
 		db = GetDB()
 		defer NewDB()
 
-		db.AddUser( &NewUserRequest{
-			Name: "user1",
-			Email: "user1@b.com",
-			Password:"password",
+		db.AddUser(&NewUserRequest{
+			Name:     "user1",
+			Email:    "user1@b.com",
+			Password: "password",
 		})
-		db.AddUser( &NewUserRequest{
-			Name: "user2",
-			Email: "user2@b.com",
-			Password:"password",
+		db.AddUser(&NewUserRequest{
+			Name:     "user2",
+			Email:    "user2@b.com",
+			Password: "password",
 		})
 
 		newComments := []NewCommentRequest{
@@ -255,15 +255,15 @@ func TestWallOperations(t *testing.T) {
 		db = GetDB()
 		defer NewDB()
 
-		db.AddUser( &NewUserRequest{
-			Name: "user1",
-			Email: "user1@b.com",
-			Password:"password",
+		db.AddUser(&NewUserRequest{
+			Name:     "user1",
+			Email:    "user1@b.com",
+			Password: "password",
 		})
-		db.AddUser( &NewUserRequest{
-			Name: "user2",
-			Email: "user2@b.com",
-			Password:"password",
+		db.AddUser(&NewUserRequest{
+			Name:     "user2",
+			Email:    "user2@b.com",
+			Password: "password",
 		})
 
 		newComments := []NewCommentRequest{
@@ -338,15 +338,15 @@ func TestCommentOperation(t *testing.T) {
 		db = GetDB()
 		defer NewDB()
 
-		db.AddUser( &NewUserRequest{
-			Name: "user1",
-			Email: "user1@b.com",
-			Password:"password",
+		db.AddUser(&NewUserRequest{
+			Name:     "user1",
+			Email:    "user1@b.com",
+			Password: "password",
 		})
-		db.AddUser( &NewUserRequest{
-			Name: "user2",
-			Email: "user2@b.com",
-			Password:"password",
+		db.AddUser(&NewUserRequest{
+			Name:     "user2",
+			Email:    "user2@b.com",
+			Password: "password",
 		})
 
 		newComment := NewCommentRequest{
@@ -390,7 +390,7 @@ func addCommentReaction(cid int64, rr CommentReactionRequest) (response *Comment
 	if err != nil {
 		return nil, err
 	}
-	request, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/reactions/%d", cid) , bytes.NewBuffer(requestBody))
+	request, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/reactions/%d", cid), bytes.NewBuffer(requestBody))
 	recorder := httptest.NewRecorder()
 	AddCommentReaction(recorder, request)
 
@@ -414,12 +414,12 @@ func TestReactionOperation(t *testing.T) {
 		db = GetDB()
 		defer NewDB()
 
-		db.AddUser( &NewUserRequest{
-			Name: "test",
-			Email: "e@b.com",
-			Password:"password",
+		db.AddUser(&NewUserRequest{
+			Name:     "test",
+			Email:    "e@b.com",
+			Password: "password",
 		})
-		db.AddReaction( &ReactionRequest{
+		db.AddReaction(&ReactionRequest{
 			Name: "testreact",
 		})
 

@@ -10,9 +10,8 @@ import (
 )
 
 type Auth struct {
-	jwtKey []byte
+	jwtKey        []byte
 	defaultExpiry time.Duration
-
 }
 
 type Claims struct {
@@ -63,7 +62,7 @@ func (a *Auth) Verify(req *http.Request) (err error) {
 
 func GetAuth() *Auth {
 	auth = &Auth{
-		jwtKey: []byte("some_random_key"),
+		jwtKey:        []byte("some_random_key"),
 		defaultExpiry: 30 * time.Minute,
 	}
 	return auth

@@ -4,6 +4,9 @@ IMAGE_TAG=huddle-image:latest
 test: docker
 	docker run --rm -it -v ${DIR}:/app -w /app ${IMAGE_TAG} go test . -v
 
+format: docker
+	docker run --rm -it -v ${DIR}:/app -w /app ${IMAGE_TAG} go fmt .
+
 build: docker
 	docker run --rm -it -v ${DIR}:/app -w /app ${IMAGE_TAG} go build .
 
