@@ -1,12 +1,12 @@
 ** RestAPIs
-*** TODO POST /signup
-*** TODO POST /signin
+*** DONE POST /signup
+*** DONE POST /signin
 *** TODO POST /signout
-*** TODO GET /comments
-*** TODO POST /comments
+*** DONE GET /comments
+*** DONE POST /comments
 *** TODO DELETE /comments
-*** TODO GET /reactions
-*** TODO POST /reactions
+*** DONE GET /reactions
+*** DONE POST /reactions
 *** TODO [#C] UPDATE /comments
 
 ** TODO Database Schema

@@ -28,3 +28,8 @@ created it, and any reactions made on it.
 6. a registered user can delete their own comment/subcomment - this will also delete all reactions
 made on that comment.
 
+## Things not done
+1. nested comments, comments on comments is not handled
+3. comment and related reaction deletion
+4. query on wall does not return reactions on the post
+5. one user one reaction is not handled, single user can post multiple reactions to a post
