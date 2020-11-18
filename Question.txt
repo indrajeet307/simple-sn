@@ -29,7 +29,7 @@ created it, and any reactions made on it.
 made on that comment.
 
 ## Things not done
-1. nested comments, comments on comments is not handled
-3. comment and related reaction deletion
-4. query on wall does not return reactions on the post
-5. one user one reaction is not handled, single user can post multiple reactions to a post
+1. Nested comments, comments on comments is not handled
+3. Comment and related reaction deletion
+4. Query on wall does not return reactions on the post
+5. One user one reaction is not handled, single user can post multiple reactions to a post

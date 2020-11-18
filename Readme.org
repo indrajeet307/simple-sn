@@ -1,0 +1,51 @@
+* Social network like webservice
+
+** Build the project using
+
+   #+begin_src bash
+    make build
+   #+end_src
+
+Above command will compile the project and generate a huddle-app binary in the current folder
+
+** Run tests in the project using
+
+   #+begin_src bash
+    make test
+   #+end_src
+
+This will run the tests in the projects and show the verbose output on the screen.
+
+** Format the code
+
+   #+begin_src bash
+    make format
+   #+end_src
+
+This will go format on the code and properly format go files
+
+Note: you will have to commit in the modified code
+
+** Clean the go dependency cache
+
+   #+begin_src bash
+    make clean-cache
+   #+end_src
+
+This will remove the .cache folder used to store project dependencies
+
+** Clean the entire project
+
+   #+begin_src bash
+    make clean
+   #+end_src
+
+   This will remove the .cache and huddle-app binary
+
+** API Usage
+
+The API usage can be found in [[./api-calls.restclient]]
+
+** Known bugs
+
+Known short commings of the project can be found in [[./Question.txt]], `Things not done` section
